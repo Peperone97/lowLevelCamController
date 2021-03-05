@@ -62,7 +62,7 @@ int main(int argc, char **argv){
     format.type = type;
     format.fmt.pix.height = 480;
     format.fmt.pix.width = 640;
-    format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+    format.fmt.pix.pixelformat = V4L2_PIX_FMT_JPEG;
     format.fmt.pix.field = V4L2_FIELD_INTERLACED;
     if( ioctl( fd, VIDIOC_S_FMT, &format ) == -1 ){
         printf("%s %d\n", strerror(errno), errno);
@@ -81,10 +81,10 @@ int main(int argc, char **argv){
         printf("%s %d\n", strerror(errno), errno);
         return 7;
     }
-    printf("I/O method setted\tNumber of buffers: %d\nCapabilities: %d\n", buff.count, buff.capabilities);
+    printf("I/O method setted\tNumber of buffers: %d\nCapabilities: %d\tSize of image: %d\n", buff.count, buff.capabilities, format.fmt.pix.sizeimage);
 
     //buff
-    uint8_t my_buff[format.fmt.pix.sizeimage];
+    void *my_buff = malloc(format.fmt.pix.sizeimage);
     struct v4l2_buffer buffer;
     memset( &buffer, 0, sizeof(struct v4l2_buffer) );
     buffer.index = 0;
@@ -103,14 +103,22 @@ int main(int argc, char **argv){
         printf("%s %d\n", strerror(errno), errno);
         return 9;
     }
-    printf("Capture started\n\n");
+    printf("Capture started\n");
+    
+    if( ioctl( fd, VIDIOC_DQBUF, &buffer ) == -1 ){
+        printf("%s %d\n", strerror(errno), errno);
+        return 10;
+    }
+    printf("Buffer filled\n");
 
-    sleep(1);
+    int img = open( "img.jpg", O_CREAT | O_WRONLY);
+    write( img, my_buff, format.fmt.pix.sizeimage);
+    //sleep(1);
 
     //stopping capture
     if( ioctl( fd, VIDIOC_STREAMOFF, &type ) == -1 ){
         printf("%s %d\n", strerror(errno), errno);
-        return 10;
+        return 11;
     }
     printf("Capture stopped\n");
 
