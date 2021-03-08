@@ -111,8 +111,6 @@ int main(int argc, char **argv){
     }
     printf("Buffer filled\n");
 
-    int img = open( "img.jpg", O_CREAT | O_WRONLY);
-    write( img, my_buff, format.fmt.pix.sizeimage);
     //sleep(1);
 
     //stopping capture
